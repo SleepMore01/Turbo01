@@ -54,7 +54,7 @@ class TurboGame {
   void static GameSpecialKeyUp(int key, int x, int y);
   void static GameAsciiKey(unsigned char key, int x, int y);
   void static GameMouse(int button, int state, int x, int y);
-  void static GameMouseWheel(int button, int dir, int x, int y);
+  void static OnGameMouseWheel(int button, int dir, int x, int y);
   void static GameMouseMove(int x, int y);
 
   void static OnGameOver();
@@ -77,11 +77,6 @@ class TurboGame {
  private:
   TurboGame() = default;
  
-
-  float static m_CameraDistance_; 
-  int static m_RotationInY;    
-  int static m_ElevationFromX;      
-  float static m_UpCamera; 
   int static m_RightLeftKey;
   int static m_UpDownKey;
   int static m_TotalOpponentCars;
@@ -104,5 +99,5 @@ class TurboGame {
   static std::vector<Car> m_CompetitiveCars;
   static std::vector<Tree> m_TrackDecorations;
 
-  //Camera m_GameCamera;
+  Camera m_GameCamera;
 };
