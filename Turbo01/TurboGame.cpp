@@ -1,11 +1,5 @@
 #include "TurboGame.hpp"
 
-
-float TurboGame::m_UpCamera;
-float TurboGame::m_CameraDistance_;
-int TurboGame::m_RotationInY;
-int TurboGame::m_ElevationFromX;
-
 int TurboGame::m_RightLeftKey = 0;
 int TurboGame::m_UpDownKey = 0;
 int TurboGame::m_TotalOpponentCars = 7;
@@ -30,26 +24,21 @@ void TurboGame::EnterGame() {
   m_GameOver = 0;
   winningGame = 0;
   gamePlaying = 2;
-  ttime = 300;
+  ttime = 700;
   glutSpecialFunc(GameSpecialKey);
   glutSpecialUpFunc(GameSpecialKeyUp);
   glutKeyboardFunc(GameAsciiKey);
 
   glutMouseFunc(GameMouse);
   glutMotionFunc(GameMouseMove);
-  glutMouseWheelFunc(GameMouseWheel);
+  glutMouseWheelFunc(OnGameMouseWheel);
 
   
   glutDisplayFunc(RenderGame);
 
   roadLoop = 1.0;
-
-  m_RotationInY = 0;
-  m_ElevationFromX = 21;  
-  m_CameraDistance_ = 10;  
-  m_UpCamera = -2;
   
-  GameChangeCamera(0, 0);
+  TurboGame::Instance().m_GameCamera.ChangeCamera(0.0f, 0.0f);
 
   m_TotalTime = 0;
 
@@ -101,9 +90,10 @@ void TurboGame::RenderGame() {
 
   glPushMatrix();
 
-  glTranslated(0.0, 0.0, -m_CameraDistance_);
-  glRotated(m_ElevationFromX, 1.0, 0.0, 0.0);
-  glRotated(m_RotationInY, 0.0, 1.0, 0.0);
+  glTranslated(0.0f, 0.0f, -TurboGame::Instance().m_GameCamera.GetDistance());
+  glRotated(TurboGame::Instance().m_GameCamera.GetElevationFromX(), 1.0f, 0.0f, 0.0f);
+  glRotated(TurboGame::Instance().m_GameCamera.GetRotationInY(), 0.0f, 1.0f, 0.0f);
+  
 
   glMatrixMode(GL_TEXTURE);
   glEnable(GL_TEXTURE_2D);
@@ -164,7 +154,6 @@ void TurboGame::RenderGame() {
 
   glEnd();
   glDisable(GL_TEXTURE_2D);
-  // DEBUG_drwCord();
 
   glPopMatrix();
   glMatrixMode(GL_MODELVIEW);
@@ -206,7 +195,7 @@ void TurboGame::RenderScore() {
   glMatrixMode(GL_PROJECTION);
 
   std::string sc = "Your score = " + std::to_string(score);
-  std::string tc = "Target score = " + std::to_string(2025);
+  std::string tc = "Target score = " + std::to_string(1675);
   std::string ttimee = "Time: = " + std::to_string(ttime); 
 
   TextRendering(5, 3, GLUT_BITMAP_HELVETICA_18, sc, 0, 255, 0, 1);
@@ -400,7 +389,7 @@ void TurboGame::UpdateGameLogic() {
     }
   }
 
-  if (score >= 2025) {
+  if (score >= 1675) {
     winningGame = 1;
     gamePlaying = 1;
   }
@@ -559,6 +548,7 @@ void TurboGame::GameSpecialKey(int key, int x, int y) {
       m_PlayerCar.IncreaseVelocity(1.f);
       m_UpDownKey = 1;
 
+
       break;
     case GLUT_KEY_DOWN:
       m_PlayerCar.IncreaseVelocity(-0.5f);
@@ -604,12 +594,12 @@ void TurboGame::GameAsciiKey(unsigned char key, int x, int y) {
     case 27:
       break;
     case 'w':
-      m_UpCamera -= 0.1;
-      GameChangeCamera(0, 0);
+      TurboGame::Instance().m_GameCamera.UpCamera(-0.1f);
+      TurboGame::Instance().m_GameCamera.ChangeCamera(0.0f, 0.0f);
       break;
     case 's':
-      m_UpCamera += 0.1;
-      GameChangeCamera(0, 0);
+      TurboGame::Instance().m_GameCamera.UpCamera(+0.1f);
+      TurboGame::Instance().m_GameCamera.ChangeCamera(0.0f, 0.0f);
       break;
     case 'p':
       gamePlaying = (gamePlaying == 2) ? 1 : 2;
@@ -623,18 +613,12 @@ void TurboGame::GameMouse(int button, int state, int x, int y) {
   // nothing to do here
 }
 
-void TurboGame::GameMouseWheel(int button, int dir, int x, int y) {
-  if (dir > 0) {
-    m_CameraDistance_--;
-    GameChangeCamera(0, 0);
-  } else {
-    m_CameraDistance_++;
-    GameChangeCamera(0, 0);
-  }
+void TurboGame::OnGameMouseWheel(int button, int dir, int x, int y) {
+  TurboGame::Instance().m_GameCamera.OnMouseWheel(button, dir, x, y);
 }
 
 void TurboGame::GameMouseMove(int x, int y) {
-  GameChangeCamera(x, y);
+  TurboGame::Instance().m_GameCamera.ChangeCamera(x, y);
 }
 
 void TurboGame::OnGameOver() {
@@ -643,35 +627,7 @@ void TurboGame::OnGameOver() {
 }
 
 void TurboGame::GameChangeCamera(int x, int y) {
-  static int prevx, prevy;
-  int difx = x - prevx;
-  int dify = y - prevy;
-  prevx = x;
-  prevy = y;
-
-  if (difx > 0) {
-    m_RotationInY++;
-  } else if (difx < 0) {
-    m_RotationInY--;
-  }
-  if (dify > 0) {
-    m_ElevationFromX++;
-  } else if (dify < 0) {
-    m_ElevationFromX--;
-  }
-
-  if (m_ElevationFromX > 90) {
-    m_ElevationFromX = 90;
-  }
-  if (m_ElevationFromX < 5) {
-    m_ElevationFromX = 5;
-  }
-  if (m_CameraDistance_ < 5) {
-    m_CameraDistance_ = 5;
-  }
-  if (m_CameraDistance_ > 20) {
-    m_CameraDistance_ = 20;
-  }
+  TurboGame::Instance().m_GameCamera.ChangeCamera(x, y);
 }
 
 void TurboGame::TextRendering(float x,
@@ -688,7 +644,7 @@ void TurboGame::TextRendering(float x,
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glColor4f(red, green, blue, alpha);
-  glRasterPos3f(x, y, -m_CameraDistance_);
+  glRasterPos3f(x, y, -TurboGame::Instance().m_GameCamera.GetDistance());
 
   for (const char& ch : text) {
     glutBitmapCharacter(font, static_cast<int>(ch));
