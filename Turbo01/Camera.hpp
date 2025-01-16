@@ -3,13 +3,15 @@
 class Camera {
  public:
   Camera();
-  void ChangeCamera(int x, int y);
+  //Camera(float, float, float );
 
  public:
+  void ChangeCamera(int x, int y);
+
   float GetUpCamera() { return m_UpCamera; }
   void SetUpCamera(float val) { m_UpCamera = val; }
 
-  float GetCameraDistance() { return m_CameraDistance; }
+  float GetDistance() { return m_CameraDistance; }
   void SetCameraDistance(float val) { m_CameraDistance = val; }
 
   int GetRotationInY() { return m_RotationInY; }
@@ -18,7 +20,9 @@ class Camera {
   int GetElevationFromX() { return m_ElevationFromX; }
   void SetElevationFromX(int val) { m_ElevationFromX = val; }
 
-  void OnMouseWheel(int button, int dir, int x, int y) {}
+  void OnMouseWheel(int button, int dir, int x, int y);
+
+  void UpCamera(float u);
 
  public:
   int m_ElevationFromX;
